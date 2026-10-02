@@ -1,0 +1,4473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Smart Crop AI - Farmer Crop Recommendation</title>
+
+<link
+rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+
+<style>
+
+:root {
+    --green: #168a45;
+    --dark-green: #075b2b;
+    --light-green: #e9f8ef;
+    --blue: #1479d1;
+    --yellow: #f5c542;
+    --red: #d9534f;
+    --dark: #173522;
+    --gray: #667085;
+    --white: #ffffff;
+    --border: #dce5df;
+    --shadow: 0 10px 30px rgba(20,80,45,.10);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f4f8f5;
+    color: var(--dark);
+}
+
+button,
+input,
+select,
+textarea {
+    font-family: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* ================= LOGIN ================= */
+
+.login-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 25px;
+
+    background:
+        linear-gradient(
+            rgba(4,70,31,.78),
+            rgba(4,70,31,.84)
+        ),
+        url("https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1800&q=80")
+        center/cover;
+}
+
+.login-card {
+    width: min(470px, 100%);
+    background: rgba(255,255,255,.98);
+    border-radius: 25px;
+    padding: 35px;
+    box-shadow: 0 25px 70px rgba(0,0,0,.25);
+}
+
+.logo {
+    text-align: center;
+    font-size: 58px;
+}
+
+.login-title {
+    text-align: center;
+    color: var(--dark-green);
+    margin: 0;
+}
+
+.login-subtitle {
+    text-align: center;
+    color: var(--gray);
+    margin-bottom: 25px;
+}
+
+.demo-otp {
+    background: #fff8db;
+    border: 1px solid #f0d56a;
+    padding: 13px;
+    border-radius: 12px;
+    margin: 15px 0;
+    color: #614d00;
+}
+
+/* ================= TOP BAR ================= */
+
+.app {
+    min-height: 100vh;
+}
+
+.topbar {
+    background: linear-gradient(
+        120deg,
+        var(--dark-green),
+        var(--green)
+    );
+
+    color: white;
+    padding: 14px 25px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+
+    box-shadow: 0 5px 20px rgba(0,0,0,.15);
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.brand-icon {
+    font-size: 30px;
+}
+
+.brand h2 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.brand small {
+    opacity: .8;
+}
+
+.logout-btn {
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.3);
+    color: white;
+    padding: 9px 15px;
+    border-radius: 10px;
+}
+
+/* ================= MAIN ================= */
+
+.container {
+    width: min(1400px, 95%);
+    margin: 25px auto;
+}
+
+.welcome {
+    background: linear-gradient(
+        135deg,
+        #e9f9ef,
+        #ffffff
+    );
+
+    border: 1px solid #d6eddd;
+    border-radius: 20px;
+    padding: 22px;
+    margin-bottom: 20px;
+}
+
+.welcome h1 {
+    margin: 0 0 5px;
+    color: var(--dark-green);
+}
+
+.card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 22px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+}
+
+.card h2 {
+    color: var(--dark-green);
+    margin-top: 0;
+}
+
+.section-number {
+    display: inline-flex;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    background: var(--green);
+    color: white;
+    margin-right: 7px;
+}
+
+/* ================= FORMS ================= */
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2,1fr);
+    gap: 15px;
+}
+
+.form-group {
+    margin-bottom: 14px;
+}
+
+.form-group.full {
+    grid-column: 1 / -1;
+}
+
+label {
+    display: block;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 7px;
+}
+
+input,
+select,
+textarea {
+    width: 100%;
+    padding: 12px 13px;
+
+    border: 1px solid #cfdad2;
+    border-radius: 10px;
+
+    outline: none;
+    background: white;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--green);
+
+    box-shadow:
+        0 0 0 3px rgba(22,138,69,.10);
+}
+
+textarea {
+    resize: vertical;
+    min-height: 90px;
+}
+
+.btn {
+    border: none;
+    border-radius: 11px;
+    padding: 12px 18px;
+    font-weight: bold;
+}
+
+.btn-primary {
+    background: var(--green);
+    color: white;
+}
+
+.btn-dark {
+    background: var(--dark-green);
+    color: white;
+}
+
+.btn-blue {
+    background: var(--blue);
+    color: white;
+}
+
+.btn-yellow {
+    background: var(--yellow);
+    color: #332900;
+}
+
+.btn-outline {
+    background: white;
+    color: var(--green);
+    border: 1px solid var(--green);
+}
+
+.btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+/* ================= LOGIN OTP ================= */
+
+.otp-container {
+    background: #f4fbf6;
+    border: 1px solid #cde5d4;
+    border-radius: 15px;
+    padding: 17px;
+    margin-top: 15px;
+}
+
+.otp-title {
+    color: var(--dark-green);
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.otp-status {
+    font-size: 13px;
+    color: var(--gray);
+    margin-top: 7px;
+}
+
+/* ================= MAP ================= */
+
+#map {
+    height: 390px;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.map-info {
+    margin-top: 10px;
+    color: var(--gray);
+    font-size: 13px;
+}
+
+/* ================= PHOTO ================= */
+
+.photo-upload {
+    border: 2px dashed #9cc9aa;
+    background: #f4fbf6;
+    padding: 25px;
+    text-align: center;
+    border-radius: 15px;
+}
+
+.photo-preview {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 15px;
+    margin-top: 15px;
+    display: none;
+    object-fit: cover;
+}
+
+/* ================= WEATHER ================= */
+
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 18px;
+}
+
+.metric {
+    padding: 18px;
+    border-radius: 15px;
+    background: var(--light-green);
+    border: 1px solid #d5eddd;
+}
+
+.metric .icon {
+    font-size: 27px;
+}
+
+.metric strong {
+    display: block;
+    font-size: 24px;
+    color: var(--dark-green);
+    margin: 5px 0;
+}
+
+.metric span {
+    color: var(--gray);
+    font-size: 13px;
+}
+
+.weather-status {
+    padding: 15px;
+    border-radius: 13px;
+    margin-top: 15px;
+
+    background: #edf6ff;
+    border-left: 5px solid var(--blue);
+}
+
+/* ================= CROPS ================= */
+
+.crop-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px;
+    position: relative;
+}
+
+.crop-rank {
+    position: absolute;
+    right: 15px;
+    top: 15px;
+
+    width: 35px;
+    height: 35px;
+
+    border-radius: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: var(--green);
+    color: white;
+    font-weight: bold;
+}
+
+.crop-card h3 {
+    margin: 0 0 5px;
+}
+
+.score {
+    font-size: 30px;
+    font-weight: bold;
+    color: var(--green);
+}
+
+.progress {
+    height: 9px;
+    background: #e6ece8;
+    border-radius: 20px;
+    overflow: hidden;
+    margin: 10px 0;
+}
+
+.progress-bar {
+    height: 100%;
+    background:
+        linear-gradient(
+            90deg,
+            #7bc043,
+            var(--green)
+        );
+}
+
+.reason {
+    font-size: 13px;
+    color: var(--gray);
+    line-height: 1.5;
+}
+
+/* ================= REPORT ================= */
+
+.report {
+    background: white;
+    border: 2px solid #d7e7dc;
+    border-radius: 20px;
+    padding: 25px;
+}
+
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.report-table td {
+    padding: 9px;
+    border-bottom: 1px solid #edf0ee;
+}
+
+.report-table td:first-child {
+    font-weight: bold;
+    width: 35%;
+}
+
+/* ================= CHAT ================= */
+
+.chat-box {
+    height: 300px;
+    overflow-y: auto;
+    background: #f5f8f6;
+    border-radius: 13px;
+    padding: 15px;
+}
+
+.chat-message {
+    padding: 10px 13px;
+    margin: 7px 0;
+    border-radius: 12px;
+    max-width: 85%;
+    line-height: 1.45;
+}
+
+.chat-user {
+    background: #dff4e7;
+    margin-left: auto;
+}
+
+.chat-ai {
+    background: white;
+    border: 1px solid var(--border);
+}
+
+/* ================= FOOTER ================= */
+
+.footer {
+    text-align: center;
+    padding: 25px;
+    color: var(--gray);
+    font-size: 13px;
+}
+
+/* ================= TOAST ================= */
+
+.toast {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+
+    background: #183b26;
+    color: white;
+
+    padding: 13px 18px;
+
+    border-radius: 12px;
+
+    z-index: 9999;
+
+    display: none;
+}
+
+.toast.show {
+    display: block;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media(max-width:850px) {
+
+    .form-grid,
+    .grid-3 {
+        grid-template-columns: 1fr;
+    }
+
+    .topbar {
+        padding: 12px 15px;
+    }
+
+    .container {
+        width: 94%;
+    }
+
+    .card {
+        padding: 17px;
+    }
+
+    .login-card {
+        padding: 25px;
+    }
+
+}
+
+@media print {
+
+    .topbar,
+    .welcome,
+    .no-print,
+    .footer,
+    #loginScreen,
+    .chat-card {
+        display: none !important;
+    }
+
+    body {
+        background: white;
+    }
+
+    .card {
+        box-shadow: none;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+
+
+<!-- =====================================================
+     LOGIN PAGE
+===================================================== -->
+
+<section id="loginScreen" class="login-screen">
+
+    <div class="login-card">
+
+        <div class="logo">
+            🌱
+        </div>
+
+        <h1 class="login-title">
+            Smart Crop AI
+        </h1>
+
+        <p class="login-subtitle">
+            AI-Powered Crop Recommendation System
+        </p>
+
+
+        <!-- FARMER NAME -->
+
+        <div class="form-group">
+
+            <label>
+                👨‍🌾 Farmer Name
+            </label>
+
+            <input
+                id="loginName"
+                type="text"
+                placeholder="Enter farmer name"
+            >
+
+        </div>
+
+
+        <!-- MOBILE -->
+
+        <div class="form-group">
+
+            <label>
+                📱 Farmer Mobile Number
+            </label>
+
+            <input
+                id="loginMobile"
+                type="tel"
+                maxlength="10"
+                placeholder="Enter 10 digit mobile number"
+            >
+
+            <div class="otp-status">
+                Example:
+                9876543210
+            </div>
+
+        </div>
+
+
+        <!-- OTP ALWAYS VISIBLE -->
+
+        <div class="otp-container">
+
+            <div class="otp-title">
+                🔐 OTP Verification
+            </div>
+
+            <div class="demo-otp">
+
+                <strong>
+                    Demo / Constant OTP: 123456
+                </strong>
+
+                <br><br>
+
+                In this academic prototype,
+                use <strong>123456</strong>
+                to verify the farmer.
+
+            </div>
+
+            <div class="form-group">
+
+                <label>
+                    Enter OTP
+                </label>
+
+                <input
+                    id="otp"
+                    type="text"
+                    inputmode="numeric"
+                    maxlength="6"
+                    placeholder="Enter 123456"
+                >
+
+            </div>
+
+            <div class="btn-row">
+
+                <button
+                    class="btn btn-primary"
+                    onclick="sendOTP()"
+                >
+                    📩 Send / Generate OTP
+                </button>
+
+                <button
+                    class="btn btn-dark"
+                    onclick="verifyOTP()"
+                >
+                    ✅ Verify OTP & Login
+                </button>
+
+            </div>
+
+            <div
+                id="otpStatus"
+                class="otp-status"
+            >
+                Enter mobile number and click
+                "Send / Generate OTP".
+            </div>
+
+        </div>
+
+
+        <div
+            style="
+                margin-top:15px;
+                font-size:12px;
+                color:#667085;
+                text-align:center;
+            "
+        >
+
+            For a production system, replace the
+            constant OTP with a secure OTP service.
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     APPLICATION
+===================================================== -->
+
+<div id="app" class="app hidden">
+
+
+<header class="topbar">
+
+    <div class="brand">
+
+        <div class="brand-icon">
+            🌱
+        </div>
+
+        <div>
+
+            <h2>
+                Smart Crop AI
+            </h2>
+
+            <small>
+                AI Agriculture Intelligence
+            </small>
+
+        </div>
+
+    </div>
+
+
+    <button
+        class="logout-btn"
+        onclick="logout()"
+    >
+        Logout
+    </button>
+
+</header>
+
+
+
+<main class="container">
+
+
+<!-- =====================================================
+     WELCOME
+===================================================== -->
+
+<section class="welcome">
+
+    <h1>
+
+        Welcome,
+        <span id="farmerDisplayName">
+            Farmer
+        </span>
+        👨‍🌾
+
+    </h1>
+
+    <p>
+        AI-powered crop recommendation based on
+        your land and agricultural parameters.
+    </p>
+
+    <p>
+
+        Mobile:
+        <strong id="farmerDisplayMobile">
+            -
+        </strong>
+
+    </p>
+
+</section>
+
+
+
+<!-- =====================================================
+     LAND DETAILS
+===================================================== -->
+
+<section class="card">
+
+<h2>
+
+    <span class="section-number">
+        1
+    </span>
+
+    Land & Survey Details
+
+</h2>
+
+
+<div class="form-grid">
+
+
+<div class="form-group">
+
+<label>
+    State
+</label>
+
+<select id="state">
+
+<option value="">
+    Select State
+</option>
+
+<option>
+    Karnataka
+</option>
+
+<option>
+    Tamil Nadu
+</option>
+
+<option>
+    Kerala
+</option>
+
+<option>
+    Andhra Pradesh
+</option>
+
+<option>
+    Telangana
+</option>
+
+<option>
+    Maharashtra
+</option>
+
+<option>
+    Other
+</option>
+
+</select>
+
+</div>
+
+
+
+<div class="form-group">
+
+<label>
+    District
+</label>
+
+<input
+    id="district"
+    placeholder="Enter district"
+/>
+
+</div>
+
+
+
+<div class="form-group">
+
+<label>
+    Taluk
+</label>
+
+<input
+    id="taluk"
+    placeholder="Enter taluk"
+/>
+
+</div>
+
+
+
+<div class="form-group">
+
+<label>
+    Village
+</label>
+
+<input
+    id="village"
+    placeholder="Enter village"
+/>
+
+</div>
+
+
+
+<div class="form-group">
+
+<label>
+    Survey Number
+</label>
+
+<input
+    id="surveyNumber"
+    placeholder="Example: 124/3A"
+/>
+
+</div>
+
+
+
+<div class="form-group">
+
+<label>
+    Land Area (Acres)
+</label>
+
+<input
+    id="landArea"
+    type="number"
+    step="0.01"
+    placeholder="Example: 2.5"
+/>
+
+</div>
+
+
+
+<div class="form-group">
+
+<label>
+    Latitude
+</label>
+
+<input
+    id="latitude"
+    type="number"
+    step="any"
+    placeholder="Optional"
+/>
+
+</div>
+
+
+
+<div class="form-group">
+
+<label>
+    Longitude
+</label>
+
+<input
+    id="longitude"
+    type="number"
+    step="any"
+    placeholder="Optional"
+/>
+
+</div>
+
+</div>
+
+
+<div class="btn-row">
+
+<button
+    class="btn btn-primary"
+    onclick="useMyLocation()"
+>
+    📍 Use My Location
+</button>
+
+
+<button
+    class="btn btn-outline"
+    onclick="lookupSurvey()"
+>
+    🔎 Lookup Survey Details
+</button>
+
+</div>
+
+
+<p
+    id="surveyStatus"
+    class="map-info"
+></p>
+
+</section>
+
+
+
+<!-- =====================================================
+     MAP
+===================================================== -->
+
+<section class="card">
+
+<h2>
+
+    <span class="section-number">
+        2
+    </span>
+
+    Land Location & Satellite View
+
+</h2>
+
+
+<div id="map"></div>
+
+
+<p class="map-info">
+
+    Click on the map to select the approximate
+    farm location. Drag the marker to adjust it.
+
+</p>
+
+</section>
+
+
+
+<!-- =====================================================
+     LAND PHOTO
+===================================================== -->
+
+<section class="card">
+
+<h2>
+
+    <span class="section-number">
+        3
+    </span>
+
+    Farmer Land Photograph
+
+</h2>
+
+
+<div class="photo-upload">
+
+    <div style="font-size:40px">
+        📷
+    </div>
+
+    <p>
+        Upload or capture your farm photograph.
+    </p>
+
+    <input
+        id="landPhoto"
+        type="file"
+        accept="image/*"
+        capture="environment"
+        onchange="previewPhoto(event)"
+    >
+
+    <img
+        id="photoPreview"
+        class="photo-preview"
+    >
+
+</div>
+
+
+<div
+    id="photoAnalysis"
+    class="weather-status hidden"
+>
+
+    <strong>
+        AI Image Analysis:
+    </strong>
+
+    <span id="photoAnalysisText"></span>
+
+</div>
+
+</section>
+
+
+
+<!-- =====================================================
+     AGRICULTURAL PARAMETERS
+===================================================== -->
+
+<section class="card">
+
+<h2>
+
+    <span class="section-number">
+        4
+    </span>
+
+    Agricultural Parameters
+
+</h2>
+
+
+<div class="form-grid">
+
+
+<div class="form-group">
+
+<label>
+    Soil Type
+</label>
+
+<select id="soilType">
+
+<option value="">
+    Select Soil Type
+</option>
+
+<option>
+    Red Loamy Soil
+</option>
+
+<option>
+    Red Soil
+</option>
+
+<option>
+    Black Soil
+</option>
+
+<option>
+    Alluvial Soil
+</option>
+
+<option>
+    Sandy Soil
+</option>
+
+<option>
+    Clay Soil
+</option>
+
+<option>
+    Laterite Soil
+</option>
+
+<option>
+    Loamy Soil
+</option>
+
+</select>
+
+</div>
+
+
+
+<div class="form-group">
+
+<label>
+    Season
+</label>
+
+<select id="season">
+
+<option value="">
+    Select Season
+</option>
+
+<option>
+    Kharif / Monsoon
+</option>
+
+<option>
+    Rabi / Winter
+</option>
+
+<option>
+    Summer
+</option>
+
+<option>
+    Year Round
+</option>
+
+</select>
+
+</div>
+
+
+
+<div class="form-group">
+
+<label>
+    Rainfall (mm)
+</label>
+
+<input
+    id="rainfall"
+    type="number"
+    placeholder="Example: 650"
+/>
+
+</div>
+
+
+
+<div class="form-group">
+
+<label>
+    Water Availability
+</label>
+
+<select id="waterAvailability">
+
+<option value="">
+    Select
+</option>
+
+<option>
+    Very Low
+</option>
+
+<option>
+    Low
+</option>
+
+<option>
+    Medium
+</option>
+
+<option>
+    High
+</option>
+
+<option>
+    Very High
+</option>
+
+</select>
+
+</div>
+
+
+
+<div class="form-group">
+
+<label>
+    Irrigation Type
+</label>
+
+<select id="irrigation">
+
+<option value="">
+    Select
+</option>
+
+<option>
+    Rainfed
+</option>
+
+<option>
+    Drip Irrigation
+</option>
+
+<option>
+    Sprinkler
+</option>
+
+<option>
+    Flood Irrigation
+</option>
+
+<option>
+    Open Well
+</option>
+
+<option>
+    Borewell
+</option>
+
+<option>
+    Canal
+</option>
+
+</select>
+
+</div>
+
+
+
+<div class="form-group">
+
+<label>
+    Previous Crop
+</label>
+
+<select id="previousCrop">
+
+<option value="">
+    Select
+</option>
+
+<option>
+    Ragi
+</option>
+
+<option>
+    Rice
+</option>
+
+<option>
+    Maize
+</option>
+
+<option>
+    Groundnut
+</option>
+
+<option>
+    Red Gram
+</option>
+
+<option>
+    Green Gram
+</option>
+
+<option>
+    Black Gram
+</option>
+
+<option>
+    Coconut
+</option>
+
+<option>
+    Arecanut
+</option>
+
+<option>
+    Banana
+</option>
+
+<option>
+    Vegetables
+</option>
+
+</select>
+
+</div>
+
+
+
+<div class="form-group full">
+
+<label>
+    Additional Farmer Information
+</label>
+
+<textarea
+    id="additionalInfo"
+    placeholder="Describe your farm, soil condition, irrigation, current crop, problems, etc."
+></textarea>
+
+</div>
+
+</div>
+
+</section>
+
+
+
+<!-- =====================================================
+     WEATHER
+===================================================== -->
+
+<section class="card">
+
+<h2>
+
+    <span class="section-number">
+        5
+    </span>
+
+    AI Weather & Rainfall Prediction
+
+</h2>
+
+
+<div class="btn-row">
+
+<button
+    class="btn btn-blue"
+    onclick="getWeather()"
+>
+    🌦️ Fetch Current Weather
+</button>
+
+
+<button
+    class="btn btn-primary"
+    onclick="predictRainfall()"
+>
+    🤖 AI Predict Rainfall
+</button>
+
+</div>
+
+
+<div
+    class="grid-3"
+    style="margin-top:18px"
+>
+
+
+<div class="metric">
+
+<div class="icon">
+    🌧️
+</div>
+
+<strong id="weatherRain">
+    --
+</strong>
+
+<span>
+    Forecast Rainfall
+</span>
+
+</div>
+
+
+
+<div class="metric">
+
+<div class="icon">
+    🌡️
+</div>
+
+<strong id="weatherTemp">
+    --
+</strong>
+
+<span>
+    Temperature
+</span>
+
+</div>
+
+
+
+<div class="metric">
+
+<div class="icon">
+    💧
+</div>
+
+<strong id="weatherHumidity">
+    --
+</strong>
+
+<span>
+    Humidity
+</span>
+
+</div>
+
+</div>
+
+
+
+<div
+    class="grid-3"
+    style="margin-top:18px"
+>
+
+
+<div class="metric">
+
+<div class="icon">
+    🎯
+</div>
+
+<strong id="rainProbability">
+    --
+</strong>
+
+<span>
+    Rain Probability
+</span>
+
+</div>
+
+
+
+<div class="metric">
+
+<div class="icon">
+    📊
+</div>
+
+<strong id="aiRainfall">
+    --
+</strong>
+
+<span>
+    AI Predicted Rainfall
+</span>
+
+</div>
+
+
+
+<div class="metric">
+
+<div class="icon">
+    ⚠️
+</div>
+
+<strong id="rainRisk">
+    --
+</strong>
+
+<span>
+    Rainfall Risk
+</span>
+
+</div>
+
+</div>
+
+
+<div
+    id="weatherStatus"
+    class="weather-status"
+>
+
+    Weather information will appear here.
+
+</div>
+
+</section>
+
+
+
+<!-- =====================================================
+     CROP RECOMMENDATION
+===================================================== -->
+
+<section class="card">
+
+<h2>
+
+    <span class="section-number">
+        6
+    </span>
+
+    AI Crop Recommendation
+
+</h2>
+
+
+<p>
+
+    The system analyses soil, season,
+    rainfall, water availability,
+    irrigation, previous crop and weather.
+
+</p>
+
+
+<button
+    class="btn btn-primary"
+    onclick="generateRecommendation()"
+>
+    🤖 Generate AI Crop Recommendation
+</button>
+
+
+<div
+    id="recommendations"
+    class="grid-3"
+    style="margin-top:20px"
+></div>
+
+</section>
+
+
+
+<!-- =====================================================
+     EXPLAINABLE AI
+===================================================== -->
+
+<section class="card">
+
+<h2>
+
+    <span class="section-number">
+        7
+    </span>
+
+    Explainable AI
+
+</h2>
+
+
+<div id="explanation">
+
+    Generate the recommendation to see
+    why crops were selected.
+
+</div>
+
+</section>
+
+
+
+<!-- =====================================================
+     AI CHATBOT
+===================================================== -->
+
+<section class="card">
+
+<h2>
+
+    <span class="section-number">
+        8
+    </span>
+
+    AI Agricultural Assistant
+
+</h2>
+
+
+<div
+    id="chatBox"
+    class="chat-box"
+>
+
+<div class="chat-message chat-ai">
+
+    👋 Hello Farmer!
+
+    <br><br>
+
+    I can help you with:
+
+    <br>
+    • Ragi
+    <br>
+    • Coconut
+    <br>
+    • Arecanut
+    <br>
+    • Rainfall
+    <br>
+    • Soil
+    <br>
+    • Water
+    <br>
+    • Crop recommendation
+
+</div>
+
+</div>
+
+
+<div class="btn-row">
+
+<input
+    id="chatInput"
+    style="flex:1"
+    placeholder="Ask your agricultural question..."
+    onkeydown="if(event.key==='Enter') sendChat()"
+/>
+
+
+<button
+    class="btn btn-primary"
+    onclick="sendChat()"
+>
+    Send
+</button>
+
+</div>
+
+</section>
+
+
+
+<!-- =====================================================
+     FINAL REPORT
+===================================================== -->
+
+<section class="card">
+
+<h2>
+
+    <span class="section-number">
+        9
+    </span>
+
+    Final Farmer Report
+
+</h2>
+
+
+<div
+    id="report"
+    class="report"
+>
+
+<h2>
+    🌱 Smart Crop AI Report
+</h2>
+
+
+<div id="reportContent">
+
+    Generate the crop recommendation
+    to create the final report.
+
+</div>
+
+</div>
+
+
+<div class="btn-row no-print">
+
+<button
+    class="btn btn-dark"
+    onclick="printReport()"
+>
+    🖨️ Print / Save PDF
+</button>
+
+
+<button
+    class="btn btn-primary"
+    onclick="sendWhatsApp()"
+>
+    💬 Send WhatsApp
+</button>
+
+
+<button
+    class="btn btn-blue"
+    onclick="sendSMS()"
+>
+    📱 Send SMS
+</button>
+
+
+<button
+    class="btn btn-outline"
+    onclick="downloadJSON()"
+>
+    ⬇️ Download Data
+</button>
+
+</div>
+
+
+<div
+    style="
+        margin-top:15px;
+        padding:13px;
+        background:#fff8dc;
+        border-radius:10px;
+        font-size:13px;
+    "
+>
+
+    <strong>
+        Messaging note:
+    </strong>
+
+    WhatsApp and SMS buttons open the
+    corresponding application with the
+    farmer's mobile number and report
+    pre-filled. Automatic background
+    sending requires a backend messaging API.
+
+</div>
+
+</section>
+
+
+
+<div class="footer">
+
+    Smart Crop AI — Academic Engineering Prototype
+
+    <br><br>
+
+    AI recommendations are decision-support
+    estimates and should be validated with
+    local agricultural experts.
+
+</div>
+
+
+</main>
+
+</div>
+
+
+
+<div
+    id="toast"
+    class="toast"
+></div>
+
+
+
+<script
+src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+></script>
+
+
+
+<script>
+
+/* =========================================================
+   GLOBAL VARIABLES
+========================================================= */
+
+let map;
+let marker;
+
+let selectedLat = 12.9716;
+let selectedLng = 77.5946;
+
+let farmer = {
+    name: "",
+    mobile: "",
+    otpVerified: false
+};
+
+let latestWeather = {
+    rainfall: null,
+    temperature: null,
+    humidity: null,
+    probability: null
+};
+
+let latestAI = {
+    rainfall: null,
+    risk: null
+};
+
+let latestRecommendations = [];
+
+
+/* =========================================================
+   LOGIN - SEND / GENERATE OTP
+========================================================= */
+
+function sendOTP() {
+
+    const name =
+        document
+        .getElementById("loginName")
+        .value
+        .trim();
+
+
+    const mobile =
+        document
+        .getElementById("loginMobile")
+        .value
+        .trim();
+
+
+    if (!name) {
+
+        showToast(
+            "Please enter farmer name."
+        );
+
+        return;
+    }
+
+
+    if (!/^[0-9]{10}$/.test(mobile)) {
+
+        showToast(
+            "Please enter a valid 10 digit mobile number."
+        );
+
+        return;
+    }
+
+
+    farmer.name = name;
+    farmer.mobile = mobile;
+
+
+    document
+    .getElementById("otpStatus")
+    .innerHTML =
+        "✅ OTP generated for mobile number " +
+        "<strong>" +
+        escapeHTML(mobile) +
+        "</strong>. " +
+        "For this demo, enter <strong>123456</strong>.";
+
+
+    showToast(
+        "Demo OTP generated: 123456"
+    );
+
+}
+
+
+/* =========================================================
+   VERIFY OTP
+========================================================= */
+
+function verifyOTP() {
+
+    const name =
+        document
+        .getElementById("loginName")
+        .value
+        .trim();
+
+
+    const mobile =
+        document
+        .getElementById("loginMobile")
+        .value
+        .trim();
+
+
+    const otp =
+        document
+        .getElementById("otp")
+        .value
+        .trim();
+
+
+    if (!name) {
+
+        showToast(
+            "Please enter farmer name."
+        );
+
+        return;
+    }
+
+
+    if (!/^[0-9]{10}$/.test(mobile)) {
+
+        showToast(
+            "Please enter a valid 10 digit mobile number."
+        );
+
+        return;
+    }
+
+
+    if (!/^[0-9]{6}$/.test(otp)) {
+
+        showToast(
+            "Please enter the 6 digit OTP."
+        );
+
+        return;
+    }
+
+
+    if (otp !== "123456") {
+
+        document
+        .getElementById("otpStatus")
+        .innerHTML =
+            "❌ Incorrect OTP. Please enter the demo OTP <strong>123456</strong>.";
+
+        showToast(
+            "Wrong OTP."
+        );
+
+        return;
+    }
+
+
+    farmer.name = name;
+    farmer.mobile = mobile;
+    farmer.otpVerified = true;
+
+
+    document
+    .getElementById("loginScreen")
+    .classList
+    .add("hidden");
+
+
+    document
+    .getElementById("app")
+    .classList
+    .remove("hidden");
+
+
+    document
+    .getElementById("farmerDisplayName")
+    .textContent =
+        farmer.name;
+
+
+    document
+    .getElementById("farmerDisplayMobile")
+    .textContent =
+        farmer.mobile;
+
+
+    initializeMap();
+
+
+    showToast(
+        "OTP verified. Login successful."
+    );
+
+}
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+function logout() {
+
+    location.reload();
+
+}
+
+
+/* =========================================================
+   MAP
+========================================================= */
+
+function initializeMap() {
+
+    if (map) return;
+
+
+    map =
+        L.map("map")
+        .setView(
+            [
+                selectedLat,
+                selectedLng
+            ],
+            12
+        );
+
+
+    const street =
+        L.tileLayer(
+            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+                maxZoom: 19,
+                attribution:
+                    "&copy; OpenStreetMap contributors"
+            }
+        );
+
+
+    const satellite =
+        L.tileLayer(
+            "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+            {
+                maxZoom: 19,
+                attribution:
+                    "Tiles &copy; Esri"
+            }
+        );
+
+
+    satellite.addTo(map);
+
+
+    L.control.layers(
+        {
+            "Satellite": satellite,
+            "Street Map": street
+        }
+    ).addTo(map);
+
+
+    marker =
+        L.marker(
+            [
+                selectedLat,
+                selectedLng
+            ],
+            {
+                draggable: true
+            }
+        )
+        .addTo(map);
+
+
+    marker
+        .bindPopup(
+            "Selected Farm Location"
+        )
+        .openPopup();
+
+
+    marker.on(
+        "dragend",
+        function() {
+
+            const p =
+                marker.getLatLng();
+
+            setCoordinates(
+                p.lat,
+                p.lng
+            );
+
+        }
+    );
+
+
+    map.on(
+        "click",
+        function(e) {
+
+            setCoordinates(
+                e.latlng.lat,
+                e.latlng.lng
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   SET LOCATION
+========================================================= */
+
+function setCoordinates(
+    lat,
+    lng
+) {
+
+    selectedLat =
+        Number(lat);
+
+    selectedLng =
+        Number(lng);
+
+
+    document
+    .getElementById("latitude")
+    .value =
+        selectedLat.toFixed(6);
+
+
+    document
+    .getElementById("longitude")
+    .value =
+        selectedLng.toFixed(6);
+
+
+    if (marker) {
+
+        marker.setLatLng(
+            [
+                selectedLat,
+                selectedLng
+            ]
+        );
+
+    }
+
+
+    if (map) {
+
+        map.setView(
+            [
+                selectedLat,
+                selectedLng
+            ],
+            14
+        );
+
+    }
+
+
+    showToast(
+        "Farm location selected."
+    );
+
+}
+
+
+/* =========================================================
+   USER LOCATION
+========================================================= */
+
+function useMyLocation() {
+
+    if (!navigator.geolocation) {
+
+        showToast(
+            "Geolocation is not supported."
+        );
+
+        return;
+    }
+
+
+    navigator
+    .geolocation
+    .getCurrentPosition(
+
+        function(position) {
+
+            setCoordinates(
+                position.coords.latitude,
+                position.coords.longitude
+            );
+
+        },
+
+        function() {
+
+            showToast(
+                "Location permission denied."
+            );
+
+        }
+
+    );
+
+}
+
+
+/* =========================================================
+   SURVEY LOOKUP
+========================================================= */
+
+function lookupSurvey() {
+
+    const survey =
+        document
+        .getElementById("surveyNumber")
+        .value
+        .trim();
+
+
+    if (!survey) {
+
+        showToast(
+            "Enter survey number."
+        );
+
+        return;
+    }
+
+
+    if (
+        !document
+        .getElementById("landArea")
+        .value
+    ) {
+
+        document
+        .getElementById("landArea")
+        .value =
+            "2.00";
+
+    }
+
+
+    document
+    .getElementById("surveyStatus")
+    .innerHTML =
+
+        "✅ Demo survey lookup completed for " +
+
+        "<strong>" +
+        escapeHTML(survey) +
+        "</strong>." +
+
+        "<br><br>" +
+
+        "Production version should connect this " +
+        "function to the relevant government " +
+        "land-record/GIS API.";
+
+
+    showToast(
+        "Survey lookup completed."
+    );
+
+}
+
+
+/* =========================================================
+   PHOTO
+========================================================= */
+
+function previewPhoto(event) {
+
+    const file =
+        event.target.files[0];
+
+
+    if (!file) return;
+
+
+    const reader =
+        new FileReader();
+
+
+    reader.onload =
+        function(e) {
+
+            const image =
+                document
+                .getElementById(
+                    "photoPreview"
+                );
+
+
+            image.src =
+                e.target.result;
+
+
+            image.style.display =
+                "block";
+
+
+            document
+            .getElementById(
+                "photoAnalysis"
+            )
+            .classList
+            .remove("hidden");
+
+
+            document
+            .getElementById(
+                "photoAnalysisText"
+            )
+            .textContent =
+
+                " Demo computer-vision analysis completed. " +
+
+                "A production version can connect " +
+
+                "a trained crop, soil or plant-disease " +
+
+                "classification model.";
+
+        };
+
+
+    reader.readAsDataURL(file);
+
+}
+
+
+/* =========================================================
+   WEATHER
+========================================================= */
+
+async function getWeather() {
+
+    const lat =
+        parseFloat(
+            document
+            .getElementById("latitude")
+            .value
+        ) ||
+        selectedLat;
+
+
+    const lng =
+        parseFloat(
+            document
+            .getElementById("longitude")
+            .value
+        ) ||
+        selectedLng;
+
+
+    try {
+
+        showToast(
+            "Fetching weather..."
+        );
+
+
+        const url =
+
+            "https://api.open-meteo.com/v1/forecast" +
+
+            "?latitude=" +
+            lat +
+
+            "&longitude=" +
+            lng +
+
+            "&daily=precipitation_sum,precipitation_probability_max,temperature_2m_max,temperature_2m_min" +
+
+            "&hourly=relative_humidity_2m" +
+
+            "&forecast_days=7" +
+
+            "&timezone=auto";
+
+
+        const response =
+            await fetch(url);
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Weather API error"
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        const rainfall =
+            (
+                data.daily
+                .precipitation_sum ||
+                []
+            )
+            .reduce(
+                (a,b) => a + b,
+                0
+            );
+
+
+        const probabilities =
+            data.daily
+            .precipitation_probability_max ||
+            [0];
+
+
+        const probability =
+            Math.max(
+                ...probabilities
+            );
+
+
+        const maxTemp =
+            Math.max(
+                ...(
+                    data.daily
+                    .temperature_2m_max ||
+                    [0]
+                )
+            );
+
+
+        const minTemp =
+            Math.min(
+                ...(
+                    data.daily
+                    .temperature_2m_min ||
+                    [0]
+                )
+            );
+
+
+        const humidityArray =
+            data.hourly
+            ?.relative_humidity_2m ||
+            [];
+
+
+        const firstHours =
+            humidityArray.slice(
+                0,
+                Math.min(
+                    168,
+                    humidityArray.length
+                )
+            );
+
+
+        const humidity =
+            firstHours.length
+            ?
+                Math.round(
+                    firstHours.reduce(
+                        (a,b) => a+b,
+                        0
+                    ) /
+                    firstHours.length
+                )
+            :
+                0;
+
+
+        latestWeather = {
+
+            rainfall:
+                rainfall,
+
+            temperature:
+                (
+                    (maxTemp + minTemp) / 2
+                ).toFixed(1),
+
+            humidity:
+                humidity,
+
+            probability:
+                probability
+
+        };
+
+
+        document
+        .getElementById("weatherRain")
+        .textContent =
+            rainfall.toFixed(0) +
+            " mm";
+
+
+        document
+        .getElementById("weatherTemp")
+        .textContent =
+            latestWeather.temperature +
+            " °C";
+
+
+        document
+        .getElementById("weatherHumidity")
+        .textContent =
+            humidity +
+            "%";
+
+
+        document
+        .getElementById("rainProbability")
+        .textContent =
+            probability +
+            "%";
+
+
+        document
+        .getElementById("weatherStatus")
+        .innerHTML =
+
+            "🌦️ <strong>Weather data fetched.</strong><br>" +
+
+            "Seven-day forecast rainfall: " +
+
+            "<strong>" +
+            rainfall.toFixed(0) +
+            " mm</strong>.";
+
+
+        showToast(
+            "Weather updated."
+        );
+
+    }
+
+    catch(error) {
+
+        console.error(error);
+
+        showToast(
+            "Unable to fetch weather."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   AI RAINFALL
+========================================================= */
+
+function predictRainfall() {
+
+    const enteredRain =
+        Number(
+            document
+            .getElementById("rainfall")
+            .value
+        ) ||
+        0;
+
+
+    const season =
+        document
+        .getElementById("season")
+        .value;
+
+
+    const forecast =
+        latestWeather.rainfall ||
+        enteredRain ||
+        100;
+
+
+    let factor = 1;
+
+
+    if (
+        season.includes("Kharif")
+    ) {
+
+        factor = 1.20;
+
+    }
+
+    else if (
+        season.includes("Rabi")
+    ) {
+
+        factor = .65;
+
+    }
+
+    else if (
+        season.includes("Summer")
+    ) {
+
+        factor = .40;
+
+    }
+
+
+    let prediction =
+        Math.round(
+            forecast * factor
+        );
+
+
+    let risk =
+        "Normal";
+
+
+    if (prediction < 50) {
+
+        risk =
+            "Low Rainfall";
+
+    }
+
+    else if (prediction < 150) {
+
+        risk =
+            "Moderate";
+
+    }
+
+    else if (prediction < 300) {
+
+        risk =
+            "High";
+
+    }
+
+    else {
+
+        risk =
+            "Very High";
+
+    }
+
+
+    latestAI = {
+
+        rainfall:
+            prediction,
+
+        risk:
+            risk
+
+    };
+
+
+    document
+    .getElementById("aiRainfall")
+    .textContent =
+        prediction +
+        " mm";
+
+
+    document
+    .getElementById("rainRisk")
+    .textContent =
+        risk;
+
+
+    document
+    .getElementById("weatherStatus")
+    .innerHTML =
+
+        "🤖 <strong>AI Rainfall Prediction</strong><br><br>" +
+
+        "Predicted rainfall: " +
+
+        "<strong>" +
+        prediction +
+        " mm</strong><br>" +
+
+        "Risk category: " +
+
+        "<strong>" +
+        risk +
+        "</strong><br><br>" +
+
+        "<small>" +
+
+        "This is a demonstration prediction " +
+        "formula. A production system should " +
+        "replace it with a trained ML model " +
+        "using historical weather data." +
+
+        "</small>";
+
+
+    showToast(
+        "Rainfall prediction generated."
+    );
+
+}
+
+
+/* =========================================================
+   CROP DATABASE
+========================================================= */
+
+const crops = [
+
+{
+    name: "Ragi",
+    emoji: "🌾",
+    type: "Millet",
+    water: "Low",
+
+    seasons: [
+        "Kharif / Monsoon",
+        "Rabi / Winter"
+    ],
+
+    soils: [
+        "Red Loamy Soil",
+        "Red Soil",
+        "Loamy Soil",
+        "Laterite Soil"
+    ],
+
+    reason:
+        "A lower-water millet option when local soil, rainfall and season are suitable."
+},
+
+{
+    name: "Coconut",
+    emoji: "🥥",
+    type: "Plantation",
+    water: "High",
+
+    seasons: [
+        "Year Round"
+    ],
+
+    soils: [
+        "Red Loamy Soil",
+        "Red Soil",
+        "Alluvial Soil",
+        "Loamy Soil",
+        "Laterite Soil"
+    ],
+
+    reason:
+        "A perennial plantation crop requiring suitable water, drainage and long-term planning."
+},
+
+{
+    name: "Arecanut",
+    emoji: "🌴",
+    type: "Plantation",
+    water: "High",
+
+    seasons: [
+        "Year Round"
+    ],
+
+    soils: [
+        "Red Loamy Soil",
+        "Red Soil",
+        "Loamy Soil",
+        "Laterite Soil"
+    ],
+
+    reason:
+        "A perennial plantation crop requiring reliable water and suitable soil and climate conditions."
+},
+
+{
+    name: "Rice",
+    emoji: "🌾",
+    type: "Cereal",
+    water: "High",
+
+    seasons: [
+        "Kharif / Monsoon",
+        "Year Round"
+    ],
+
+    soils: [
+        "Clay Soil",
+        "Alluvial Soil",
+        "Loamy Soil"
+    ],
+
+    reason:
+        "A water-demanding cereal suitable only where field, water and climate conditions support it."
+},
+
+{
+    name: "Maize",
+    emoji: "🌽",
+    type: "Cereal",
+    water: "Medium",
+
+    seasons: [
+        "Kharif / Monsoon",
+        "Rabi / Winter",
+        "Summer"
+    ],
+
+    soils: [
+        "Red Loamy Soil",
+        "Black Soil",
+        "Alluvial Soil",
+        "Loamy Soil"
+    ],
+
+    reason:
+        "A versatile cereal whose suitability depends on soil, season, rainfall and irrigation."
+},
+
+{
+    name: "Groundnut",
+    emoji: "🥜",
+    type: "Oilseed",
+    water: "Low",
+
+    seasons: [
+        "Kharif / Monsoon",
+        "Summer"
+    ],
+
+    soils: [
+        "Red Loamy Soil",
+        "Red Soil",
+        "Sandy Soil",
+        "Loamy Soil"
+    ],
+
+    reason:
+        "A lower-water oilseed option for suitable well-drained soils."
+},
+
+{
+    name: "Red Gram",
+    emoji: "🌱",
+    type: "Pulse",
+    water: "Low",
+
+    seasons: [
+        "Kharif / Monsoon"
+    ],
+
+    soils: [
+        "Red Soil",
+        "Red Loamy Soil",
+        "Black Soil",
+        "Loamy Soil"
+    ],
+
+    reason:
+        "A pulse crop suitable under appropriate seasonal rainfall and soil conditions."
+},
+
+{
+    name: "Green Gram",
+    emoji: "🌱",
+    type: "Pulse",
+    water: "Low",
+
+    seasons: [
+        "Kharif / Monsoon",
+        "Summer"
+    ],
+
+    soils: [
+        "Red Soil",
+        "Red Loamy Soil",
+        "Loamy Soil",
+        "Sandy Soil"
+    ],
+
+    reason:
+        "A short-duration pulse that can suit appropriate soil and moisture conditions."
+},
+
+{
+    name: "Black Gram",
+    emoji: "🌱",
+    type: "Pulse",
+    water: "Low",
+
+    seasons: [
+        "Kharif / Monsoon",
+        "Rabi / Winter"
+    ],
+
+    soils: [
+        "Black Soil",
+        "Red Loamy Soil",
+        "Loamy Soil"
+    ],
+
+    reason:
+        "A pulse crop whose suitability depends on season, soil and available moisture."
+},
+
+{
+    name: "Banana",
+    emoji: "🍌",
+    type: "Horticulture",
+    water: "High",
+
+    seasons: [
+        "Year Round"
+    ],
+
+    soils: [
+        "Alluvial Soil",
+        "Loamy Soil",
+        "Red Loamy Soil"
+    ],
+
+    reason:
+        "A horticultural crop requiring reliable water and appropriate soil conditions."
+},
+
+{
+    name: "Tomato",
+    emoji: "🍅",
+    type: "Vegetable",
+    water: "Medium",
+
+    seasons: [
+        "Rabi / Winter",
+        "Summer"
+    ],
+
+    soils: [
+        "Red Loamy Soil",
+        "Loamy Soil",
+        "Alluvial Soil"
+    ],
+
+    reason:
+        "Requires suitable temperature, soil, irrigation and crop management."
+},
+
+{
+    name: "Chilli",
+    emoji: "🌶️",
+    type: "Vegetable",
+    water: "Medium",
+
+    seasons: [
+        "Kharif / Monsoon",
+        "Rabi / Winter"
+    ],
+
+    soils: [
+        "Red Soil",
+        "Red Loamy Soil",
+        "Loamy Soil"
+    ],
+
+    reason:
+        "Suitable conditions depend on season, soil, irrigation and crop management."
+},
+
+{
+    name: "Mango",
+    emoji: "🥭",
+    type: "Fruit",
+    water: "Medium",
+
+    seasons: [
+        "Year Round"
+    ],
+
+    soils: [
+        "Red Soil",
+        "Red Loamy Soil",
+        "Loamy Soil",
+        "Alluvial Soil"
+    ],
+
+    reason:
+        "A perennial fruit crop requiring long-term land and climate suitability."
+}
+
+];
+
+
+/* =========================================================
+   CROP RECOMMENDATION
+========================================================= */
+
+function generateRecommendation() {
+
+    const soil =
+        document
+        .getElementById("soilType")
+        .value;
+
+
+    const season =
+        document
+        .getElementById("season")
+        .value;
+
+
+    const water =
+        document
+        .getElementById("waterAvailability")
+        .value;
+
+
+    const rainfall =
+        Number(
+            document
+            .getElementById("rainfall")
+            .value
+        ) ||
+        0;
+
+
+    const irrigation =
+        document
+        .getElementById("irrigation")
+        .value;
+
+
+    if (
+        !soil ||
+        !season ||
+        !water
+    ) {
+
+        showToast(
+            "Select soil, season and water availability."
+        );
+
+        return;
+    }
+
+
+    const aiRain =
+        latestAI.rainfall ||
+        latestWeather.rainfall ||
+        rainfall;
+
+
+    const results =
+        crops.map(
+            crop => {
+
+                let score = 50;
+
+                let reasons = [];
+
+
+                if (
+                    crop.soils.includes(
+                        soil
+                    )
+                ) {
+
+                    score += 15;
+
+                    reasons.push(
+                        "soil compatibility"
+                    );
+
+                }
+
+
+                if (
+                    crop.seasons.includes(
+                        season
+                    )
+                ) {
+
+                    score += 15;
+
+                    reasons.push(
+                        "season compatibility"
+                    );
+
+                }
+
+
+                if (
+                    water === "Very Low" ||
+                    water === "Low"
+                ) {
+
+                    if (
+                        crop.water === "Low"
+                    ) {
+
+                        score += 12;
+
+                        reasons.push(
+                            "lower water requirement"
+                        );
+
+                    }
+
+
+                    if (
+                        crop.water === "High"
+                    ) {
+
+                        score -= 15;
+
+                    }
+
+                }
+
+
+                if (
+                    water === "High" ||
+                    water === "Very High"
+                ) {
+
+                    if (
+                        crop.water === "High"
+                    ) {
+
+                        score += 10;
+
+                        reasons.push(
+                            "water availability"
+                        );
+
+                    }
+
+                }
+
+
+                if (aiRain > 0) {
+
+                    if (
+                        crop.water === "High" &&
+                        aiRain >= 150
+                    ) {
+
+                        score += 7;
+
+                        reasons.push(
+                            "rainfall support"
+                        );
+
+                    }
+
+
+                    if (
+                        crop.water === "Low" &&
+                        aiRain >= 50 &&
+                        aiRain <= 180
+                    ) {
+
+                        score += 7;
+
+                        reasons.push(
+                            "moderate rainfall"
+                        );
+
+                    }
+
+                }
+
+
+                if (
+                    irrigation &&
+                    irrigation !== "Rainfed" &&
+                    crop.water === "High"
+                ) {
+
+                    score += 5;
+
+                    reasons.push(
+                        "irrigation availability"
+                    );
+
+                }
+
+
+                score =
+                    Math.max(
+                        35,
+                        Math.min(
+                            97,
+                            score
+                        )
+                    );
+
+
+                return {
+                    ...crop,
+                    score,
+                    reasons
+                };
+
+            }
+        );
+
+
+    results.sort(
+        (a,b) =>
+            b.score -
+            a.score
+    );
+
+
+    latestRecommendations =
+        results.slice(
+            0,
+            6
+        );
+
+
+    renderRecommendations();
+
+    renderExplanation();
+
+    generateReport();
+
+
+    showToast(
+        "Crop recommendations generated."
+    );
+
+}
+
+
+/* =========================================================
+   DISPLAY RECOMMENDATIONS
+========================================================= */
+
+function renderRecommendations() {
+
+    const container =
+        document
+        .getElementById(
+            "recommendations"
+        );
+
+
+    container.innerHTML = "";
+
+
+    latestRecommendations
+    .forEach(
+        (crop,index) => {
+
+            const div =
+                document
+                .createElement(
+                    "div"
+                );
+
+
+            div.className =
+                "crop-card";
+
+
+            div.innerHTML = `
+
+                <div class="crop-rank">
+                    ${index + 1}
+                </div>
+
+                <div style="font-size:38px">
+                    ${crop.emoji}
+                </div>
+
+                <h3>
+                    ${escapeHTML(crop.name)}
+                </h3>
+
+                <small>
+                    ${escapeHTML(crop.type)}
+                </small>
+
+                <div class="score">
+                    ${crop.score}%
+                </div>
+
+                <div class="progress">
+
+                    <div
+                        class="progress-bar"
+                        style="width:${crop.score}%"
+                    ></div>
+
+                </div>
+
+                <div class="reason">
+
+                    ${escapeHTML(crop.reason)}
+
+                </div>
+
+                <br>
+
+                <small>
+
+                    <strong>
+                        Water:
+                    </strong>
+
+                    ${escapeHTML(crop.water)}
+
+                </small>
+
+            `;
+
+
+            container.appendChild(
+                div
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   EXPLAINABLE AI
+========================================================= */
+
+function renderExplanation() {
+
+    const element =
+        document
+        .getElementById(
+            "explanation"
+        );
+
+
+    if (
+        !latestRecommendations.length
+    ) {
+
+        element.innerHTML =
+            "Generate a recommendation first.";
+
+        return;
+    }
+
+
+    let html = "";
+
+
+    latestRecommendations
+    .slice(0,3)
+    .forEach(
+        (crop,index) => {
+
+            html += `
+
+                <div
+                    style="
+                        padding:15px;
+                        margin-bottom:12px;
+                        background:#f4fbf6;
+                        border-radius:12px;
+                        border-left:5px solid #168a45;
+                    "
+                >
+
+                    <strong>
+
+                        ${index + 1}.
+                        ${escapeHTML(crop.name)}
+
+                    </strong>
+
+                    <br><br>
+
+                    Model score:
+
+                    <strong>
+                        ${crop.score}%
+                    </strong>
+
+                    <br><br>
+
+                    Factors:
+
+                    ${
+                        crop.reasons.length
+                        ?
+                        escapeHTML(
+                            crop.reasons.join(
+                                ", "
+                            )
+                        )
+                        :
+                        "General suitability"
+                    }
+
+                    <br><br>
+
+                    ${escapeHTML(crop.reason)}
+
+                </div>
+
+            `;
+
+        }
+    );
+
+
+    html += `
+
+        <div
+            style="
+                background:#fff8dc;
+                padding:15px;
+                border-radius:12px;
+            "
+        >
+
+            <strong>
+                AI Transparency
+            </strong>
+
+            <br><br>
+
+            These scores are produced by
+            the demonstration recommendation
+            engine.
+
+            A production version should use
+            a validated agricultural dataset
+            and trained machine-learning model.
+
+        </div>
+
+    `;
+
+
+    element.innerHTML =
+        html;
+
+}
+
+
+/* =========================================================
+   REPORT
+========================================================= */
+
+function generateReport() {
+
+    const top =
+        latestRecommendations
+        .slice(0,3);
+
+
+    let cropsHTML =
+        top.length
+        ?
+        top
+        .map(
+            (crop,index) =>
+                `${index+1}. ${escapeHTML(crop.name)}
+                — ${crop.score}%`
+        )
+        .join("<br>")
+        :
+        "Not generated";
+
+
+    document
+    .getElementById(
+        "reportContent"
+    )
+    .innerHTML = `
+
+        <table class="report-table">
+
+            <tr>
+                <td>
+                    Farmer Name
+                </td>
+
+                <td>
+                    ${escapeHTML(farmer.name)}
+                </td>
+            </tr>
+
+
+            <tr>
+                <td>
+                    Mobile Number
+                </td>
+
+                <td>
+                    ${escapeHTML(farmer.mobile)}
+                </td>
+            </tr>
+
+
+            <tr>
+                <td>
+                    State
+                </td>
+
+                <td>
+                    ${escapeHTML(value("state"))}
+                </td>
+            </tr>
+
+
+            <tr>
+                <td>
+                    District
+                </td>
+
+                <td>
+                    ${escapeHTML(value("district"))}
+                </td>
+            </tr>
+
+
+            <tr>
+                <td>
+                    Taluk
+                </td>
+
+                <td>
+                    ${escapeHTML(value("taluk"))}
+                </td>
+            </tr>
+
+
+            <tr>
+                <td>
+                    Village
+                </td>
+
+                <td>
+                    ${escapeHTML(value("village"))}
+                </td>
+            </tr>
+
+
+            <tr>
+                <td>
+                    Survey Number
+                </td>
+
+                <td>
+                    ${escapeHTML(value("surveyNumber"))}
+                </td>
+            </tr>
+
+
+            <tr>
+                <td>
+                    Land Area
+                </td>
+
+                <td>
+                    ${escapeHTML(value("landArea"))}
+                    acres
+                </td>
+            </tr>
+
+
+            <tr>
+                <td>
+                    Latitude
+                </td>
+
+                <td>
+                    ${escapeHTML(value("latitude"))}
+                </td>
+            </tr>
+
+
+            <tr>
+                <td>
+                    Longitude
+                </td>
+
+                <td>
+                    ${escapeHTML(value("longitude"))}
+                </td>
+            </tr>
+
+
+            <tr>
+                <td>
+                    Soil Type
+                </td>
+
+                <td>
+                    ${escapeHTML(value("soilType"))}
+                </td>
+            </tr>
+
+
+            <tr>
+                <td>
+                    Season
+                </td>
+
+                <td>
+                    ${escapeHTML(value("season"))}
+                </td>
+            </tr>
+
+
+            <tr>
+                <td>
+                    Rainfall
+                </td>
+
+                <td>
+                    ${escapeHTML(value("rainfall"))}
+                    mm
+                </td>
+            </tr>
+
+
+            <tr>
+                <td>
+                    Water Availability
+                </td>
+
+                <td>
+                    ${escapeHTML(
+                        value(
+                            "waterAvailability"
+                        )
+                    )}
+                </td>
+            </tr>
+
+
+            <tr>
+                <td>
+                    Irrigation
+                </td>
+
+                <td>
+                    ${escapeHTML(
+                        value("irrigation")
+                    )}
+                </td>
+            </tr>
+
+
+            <tr>
+                <td>
+                    Previous Crop
+                </td>
+
+                <td>
+                    ${escapeHTML(
+                        value("previousCrop")
+                    )}
+                </td>
+            </tr>
+
+
+            <tr>
+                <td>
+                    Forecast Rainfall
+                </td>
+
+                <td>
+
+                    ${
+                        latestWeather.rainfall !== null
+                        ?
+                        latestWeather.rainfall.toFixed(0)
+                        + " mm"
+                        :
+                        "-"
+                    }
+
+                </td>
+            </tr>
+
+
+            <tr>
+                <td>
+                    AI Predicted Rainfall
+                </td>
+
+                <td>
+
+                    ${
+                        latestAI.rainfall !== null
+                        ?
+                        latestAI.rainfall + " mm"
+                        :
+                        "-"
+                    }
+
+                </td>
+            </tr>
+
+
+            <tr>
+                <td>
+                    Rainfall Risk
+                </td>
+
+                <td>
+                    ${escapeHTML(
+                        latestAI.risk || "-"
+                    )}
+                </td>
+            </tr>
+
+
+            <tr>
+                <td>
+                    Top Recommended Crops
+                </td>
+
+                <td>
+                    ${cropsHTML}
+                </td>
+            </tr>
+
+        </table>
+
+
+        <br>
+
+
+        <div
+            style="
+                background:#eaf8ef;
+                padding:15px;
+                border-radius:12px;
+            "
+        >
+
+            <strong>
+                AI Summary
+            </strong>
+
+            <p>
+                The system considered soil,
+                season, rainfall, water
+                availability, irrigation,
+                location and weather information.
+            </p>
+
+            <p>
+                Coconut and arecanut are
+                perennial plantation crops,
+                so long-term suitability and
+                water availability should be
+                assessed before planting.
+            </p>
+
+        </div>
+
+
+        <br>
+
+
+        <small>
+            Generated:
+            ${new Date().toLocaleString()}
+        </small>
+
+    `;
+
+}
+
+
+/* =========================================================
+   CHATBOT
+========================================================= */
+
+function sendChat() {
+
+    const input =
+        document
+        .getElementById(
+            "chatInput"
+        );
+
+
+    const question =
+        input.value.trim();
+
+
+    if (!question) return;
+
+
+    addChatMessage(
+        question,
+        "user"
+    );
+
+
+    input.value = "";
+
+
+    setTimeout(
+        () => {
+
+            addChatMessage(
+                generateAIAnswer(
+                    question
+                ),
+                "ai"
+            );
+
+        },
+        400
+    );
+
+}
+
+
+function addChatMessage(
+    text,
+    type
+) {
+
+    const box =
+        document
+        .getElementById(
+            "chatBox"
+        );
+
+
+    const message =
+        document
+        .createElement(
+            "div"
+        );
+
+
+    message.className =
+        "chat-message " +
+
+        (
+            type === "user"
+            ?
+            "chat-user"
+            :
+            "chat-ai"
+        );
+
+
+    message.textContent =
+        text;
+
+
+    box.appendChild(
+        message
+    );
+
+
+    box.scrollTop =
+        box.scrollHeight;
+
+}
+
+
+function generateAIAnswer(
+    question
+) {
+
+    const q =
+        question.toLowerCase();
+
+
+    if (
+        q.includes("ragi")
+    ) {
+
+        return "Ragi is a millet crop that can be considered when soil, season, rainfall and local conditions are suitable. The demonstration recommendation engine gives additional weight to lower water availability.";
+
+    }
+
+
+    if (
+        q.includes("coconut")
+    ) {
+
+        return "Coconut is a perennial plantation crop. Long-term rainfall, soil, drainage, climate and reliable water availability should be considered.";
+
+    }
+
+
+    if (
+        q.includes("arecanut") ||
+        q.includes("areca")
+    ) {
+
+        return "Arecanut is a perennial plantation crop. Reliable water, soil, drainage and long-term climate suitability are important.";
+
+    }
+
+
+    if (
+        q.includes("rain")
+    ) {
+
+        if (
+            latestAI.rainfall
+        ) {
+
+            return (
+
+                "The current demonstration " +
+                "AI rainfall prediction is " +
+                latestAI.rainfall +
+                " mm, with a " +
+                latestAI.risk +
+                " risk category."
+
+            );
+
+        }
+
+
+        return "Please click AI Predict Rainfall first.";
+
+    }
+
+
+    if (
+        q.includes("crop") ||
+        q.includes("recommend")
+    ) {
+
+        if (
+            latestRecommendations.length
+        ) {
+
+            return (
+
+                "The current top recommendation is " +
+
+                latestRecommendations[0].name +
+
+                " with a demonstration suitability score of " +
+
+                latestRecommendations[0].score +
+
+                "%."
+
+            );
+
+        }
+
+
+        return "Enter your farm parameters and generate a crop recommendation first.";
+
+    }
+
+
+    if (
+        q.includes("water") ||
+        q.includes("irrigation")
+    ) {
+
+        return "Water availability is an important input. The recommendation engine gives more weight to lower-water crops when the farmer selects low water availability.";
+
+    }
+
+
+    return "I can help with ragi, coconut, arecanut, rainfall, soil, water, irrigation and crop recommendations.";
+
+}
+
+
+/* =========================================================
+   BUILD MESSAGE
+========================================================= */
+
+function buildMessage() {
+
+    const top =
+        latestRecommendations
+        .slice(0,3)
+        .map(
+            (crop,index) =>
+                `${index+1}. ${crop.name} - ${crop.score}%`
+        )
+        .join("\n");
+
+
+    return `SMART CROP AI
+FARMER REPORT
+
+Farmer:
+${farmer.name}
+
+Mobile:
+${farmer.mobile}
+
+State:
+${value("state")}
+
+District:
+${value("district")}
+
+Taluk:
+${value("taluk")}
+
+Village:
+${value("village")}
+
+Survey Number:
+${value("surveyNumber")}
+
+Land Area:
+${value("landArea")} acres
+
+Soil:
+${value("soilType")}
+
+Season:
+${value("season")}
+
+Rainfall:
+${value("rainfall")} mm
+
+Water:
+${value("waterAvailability")}
+
+Irrigation:
+${value("irrigation")}
+
+Previous Crop:
+${value("previousCrop")}
+
+AI Predicted Rainfall:
+${
+    latestAI.rainfall !== null
+    ?
+    latestAI.rainfall + " mm"
+    :
+    "Not generated"
+}
+
+Rainfall Risk:
+${latestAI.risk || "Not generated"}
+
+TOP CROP RECOMMENDATIONS
+
+${top || "Generate recommendation first."}
+
+Smart Crop AI is a decision-support prototype.
+Validate crop decisions with local agricultural experts.`;
+
+}
+
+
+/* =========================================================
+   WHATSAPP
+========================================================= */
+
+function sendWhatsApp() {
+
+    if (!farmer.mobile) {
+
+        showToast(
+            "Farmer mobile number is missing."
+        );
+
+        return;
+    }
+
+
+    const message =
+        buildMessage();
+
+
+    /*
+       WhatsApp requires the international
+       country code.
+
+       This example assumes India (+91).
+    */
+
+    let phone =
+        farmer.mobile
+        .replace(
+            /\D/g,
+            ""
+        );
+
+
+    if (
+        phone.length === 10
+    ) {
+
+        phone =
+            "91" +
+            phone;
+
+    }
+
+
+    const url =
+        "https://wa.me/" +
+        phone +
+        "?text=" +
+        encodeURIComponent(
+            message
+        );
+
+
+    window.open(
+        url,
+        "_blank"
+    );
+
+
+    showToast(
+        "WhatsApp opened with farmer report."
+    );
+
+}
+
+
+/* =========================================================
+   SMS
+========================================================= */
+
+function sendSMS() {
+
+    if (!farmer.mobile) {
+
+        showToast(
+            "Farmer mobile number is missing."
+        );
+
+        return;
+    }
+
+
+    const message =
+        buildMessage();
+
+
+    const url =
+        "sms:" +
+        farmer.mobile +
+        "?body=" +
+        encodeURIComponent(
+            message
+        );
+
+
+    window.location.href =
+        url;
+
+}
+
+
+/* =========================================================
+   PRINT
+========================================================= */
+
+function printReport() {
+
+    generateReport();
+
+    window.print();
+
+}
+
+
+/* =========================================================
+   DOWNLOAD JSON
+========================================================= */
+
+function downloadJSON() {
+
+    const data = {
+
+        farmer:
+
+            farmer,
+
+        land: {
+
+            state:
+                value("state"),
+
+            district:
+                value("district"),
+
+            taluk:
+                value("taluk"),
+
+            village:
+                value("village"),
+
+            surveyNumber:
+                value("surveyNumber"),
+
+            area:
+                value("landArea"),
+
+            latitude:
+                value("latitude"),
+
+            longitude:
+                value("longitude")
+
+        },
+
+        agriculturalParameters: {
+
+            soil:
+                value("soilType"),
+
+            season:
+                value("season"),
+
+            rainfall:
+                value("rainfall"),
+
+            water:
+                value("waterAvailability"),
+
+            irrigation:
+                value("irrigation"),
+
+            previousCrop:
+                value("previousCrop"),
+
+            additionalInformation:
+                value("additionalInfo")
+
+        },
+
+        weather:
+            latestWeather,
+
+        AIrainfall:
+            latestAI,
+
+        recommendations:
+            latestRecommendations,
+
+        generatedAt:
+            new Date().toISOString()
+
+    };
+
+
+    const blob =
+        new Blob(
+            [
+                JSON.stringify(
+                    data,
+                    null,
+                    2
+                )
+            ],
+            {
+                type:
+                    "application/json"
+            }
+        );
+
+
+    const url =
+        URL.createObjectURL(
+            blob
+        );
+
+
+    const link =
+        document.createElement(
+            "a"
+        );
+
+
+    link.href =
+        url;
+
+
+    link.download =
+        "smart-crop-ai-report.json";
+
+
+    link.click();
+
+
+    URL.revokeObjectURL(
+        url
+    );
+
+}
+
+
+/* =========================================================
+   UTILITY - GET VALUE
+========================================================= */
+
+function value(id) {
+
+    const element =
+        document
+        .getElementById(id);
+
+
+    return element
+        ?
+        element.value || "-"
+        :
+        "-";
+
+}
+
+
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function escapeHTML(value) {
+
+    return String(value)
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+function showToast(message) {
+
+    const toast =
+        document
+        .getElementById(
+            "toast"
+        );
+
+
+    toast.textContent =
+        message;
+
+
+    toast.classList.add(
+        "show"
+    );
+
+
+    setTimeout(
+        () => {
+
+            toast.classList.remove(
+                "show"
+            );
+
+        },
+        3000
+    );
+
+}
+
+</script>
+
+</body>
+</html>
